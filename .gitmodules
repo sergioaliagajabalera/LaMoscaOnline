@@ -1,0 +1,3 @@
+[submodule "LaMoscaOnline-Vue"]
+	path = LaMoscaOnline-Vue
+	url = https://github.com/sergioaliagajabalera/LaMoscaOnline-Vue
