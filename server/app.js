@@ -14,8 +14,31 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+//request since outside of the server| configuration
+app.use(function(req,res,next){
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Request-Method', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'OPTIONS, GET');
+  res.setHeader('Access-Control-Allow-Headers', '*');
+  next();
+}
+);
+
+
+//mongodb connection
+const mysql = require('mysql'); 
+const con = mysql.createConnection({
+  host     : 'localhost',
+  user     : 'adminlamoscaonline',
+  password : 'adminlamoscaonline',
+  database : 'lamoscaonline',
+  port: 3306
+});
+
+
 
 //routes exports
+
 
 
 
@@ -28,17 +51,9 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 
 //use path request control
-
-
-
-
-
-
-
-
-
-
-
+app.post('/hello', function(req, res) {
+  res.send('hello world');
+});
 
 
 
