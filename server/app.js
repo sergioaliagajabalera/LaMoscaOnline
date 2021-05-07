@@ -6,7 +6,7 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var PORT = process.env.PORT || 4000;
 var app = express();
-
+var cors= require('cors');
 
 app.use(logger('dev'));
 app.use(express.json());
@@ -18,16 +18,18 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(function(req,res,next){
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Request-Method', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'OPTIONS, GET');
+  res.setHeader('Access-Control-Allow-Methods', 'OPTIONS, GET,POST');
   res.setHeader('Access-Control-Allow-Headers', '*');
   next();
-}
-);
+});
+
+app.use(cors())
+app.options('*', cors())
 
 
 //mongodb connection
 const mysql = require('mysql'); 
-const con = mysql.createConnection({
+const db = mysql.createConnection({
   host     : 'localhost',
   user     : 'adminlamoscaonline',
   password : 'adminlamoscaonline',
@@ -35,15 +37,17 @@ const con = mysql.createConnection({
   port: 3306
 });
 
+//md5 hash
+var md5 = require('md5');
 
 
-//routes exports
-
+//routes imports
+var playersRouter = require('./routes/players');
 
 
 
 //array's objects exports
-
+var players=playersRouter.players;
 
 
 
@@ -51,9 +55,16 @@ const con = mysql.createConnection({
 
 
 //use path request control
-app.post('/hello', function(req, res) {
+app.get('/hello', function(req, res) {
   res.send('hello world');
 });
+
+app.post('/login', function(req, res){
+  console.log(req);
+  res.send({ status: 1, data: "holaa" });
+});
+
+
 
 
 
@@ -72,16 +83,13 @@ app.use(function(req, res, next) {
   
     // render the error page
     res.status(err.status || 500);
-    res.render('error');
+    res.send('error');
   });
   
   
   if (app.get('env') === 'development') {
     app.use(function(err, req, res, next) {
-        res.render('error', {
-            message: err.message,
-            error: err
-        });
+      res.send('error');
     });
   }
   module.exports = app;

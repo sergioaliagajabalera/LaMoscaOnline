@@ -1,0 +1,28 @@
+doctype html
+html(lang="en")
+  head
+    title Iniciar sessió
+    meta(name='viewport', content='width=device-width, initial-scale=1.0')
+    link(rel='stylesheet', href='https://fonts.googleapis.com/css?family=Lato:300,400,700,900&display=swap')
+    link(rel='stylesheet', href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css')
+    link(rel='stylesheet', href='../stylesheets/style.css')
+    script(src='javascripts/localstorage.js')
+    script(src='javascripts/afegirjugadorlocalstorage.js')
+  body
+    #main
+     #jugador #{jugador}
+     form#formCreategame(name="createGame"  action="/crearpartida", method="post")
+      div.label CREAR PARTIDA
+      div.namegame
+       input(type="text", placeholder="NAME GAME", name="idPartida")
+       input( hidden type="text", placeholder="", name="username", value="#{jugador}")
+      button#btnSubmit(type="submit") Crear partida
+    
+     form#formJoingame(name="joinGame" action="/joinpartida", method="post")
+      div.label Uneix a PARTIDA
+      div.namegame
+       input(type="text", placeholder="NAME GAME", name="idPartida")
+       input( hidden type="text", placeholder="", name="username", value="#{jugador}")
+      button#btnSubmit(type="submit") Uneixte partida
+
+       

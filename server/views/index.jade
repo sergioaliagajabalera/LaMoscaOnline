@@ -1,0 +1,20 @@
+doctype html
+html(lang="en")
+  head
+    title Iniciar sessió
+    meta(name='viewport', content='width=device-width, initial-scale=1.0')
+    link(rel='stylesheet', href='https://fonts.googleapis.com/css?family=Lato:300,400,700,900&display=swap')
+    link(rel='stylesheet', href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css')
+    link(rel='stylesheet', href='../stylesheets/style.css')
+  body
+    #main
+     form#formAddPlayer(action="/verificar", method="post", name="login")
+       div.label Login
+       div.username
+        input#inputUserName(type="text", placeholder="Nom d'usuari", name="username")
+       div.password
+        input#inputPassword(type="password", placeholder="Contrasenya", name="password")
+       button#btnSubmit(type="submit") Iniciar sessió
+       p
+        | No tens un compte ?
+        a(href="/register") Registra't
