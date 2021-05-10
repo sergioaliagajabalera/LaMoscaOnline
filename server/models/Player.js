@@ -9,11 +9,11 @@ module.exports = class Player {
     this.password = password;
     this.email = email;
     this.country=country;
-    let data= new Date();
-    let data2=data.getDay()+'-'+data.getMonth()+'-'+data.getFullYear();
-    let hour=data.getHours()+':'+data.getMinutes();
-    let datetotal=data2+' '+hour;
-    this.d_register=datetotal;
+    //let data= new Date();
+    //let data2=data.getDay()+'-'+data.getMonth()+'-'+data.getFullYear();
+    //let hour=data.getHours()+':'+data.getMinutes();
+    //let datetotal=data2+' '+hour;
+    //this.d_register=datetotal;
 
   }
 

@@ -28,8 +28,8 @@ app.options('*', cors())
 
 
 //mongodb connection
-const mysql = require('mysql'); 
-const db = mysql.createConnection({
+var mysql = require('mysql'); 
+var db = mysql.createConnection({
   host     : 'localhost',
   user     : 'adminlamoscaonline',
   password : 'adminlamoscaonline',
@@ -59,12 +59,9 @@ app.get('/hello', function(req, res) {
   res.send('hello world');
 });
 
-app.post('/login', function(req, res){
-  console.log(req);
-  res.send({ status: 1, data: "holaa" });
-});
-
-
+app.post('/login', playersRouter.login(db,md5,players));
+app.post('/register', playersRouter.register(db,md5,players));
+app.post('/logout', playersRouter.logout(players));
 
 
 

@@ -3,6 +3,7 @@ use lamoscaonline;
 
 CREATE USER 'adminlamoscaonline'@'localhost' IDENTIFIED BY 'adminlamoscaonline';
 GRANT ALL PRIVILEGES ON lamoscaonline . * TO 'adminlamoscaonline'@'localhost';
+ALTER USER 'adminlamoscaonline'@'localhost' IDENTIFIED WITH mysql_native_password BY 'adminlamoscaonline';
 FLUSH PRIVILEGES;
 
 create table Players(
@@ -13,6 +14,8 @@ create table Players(
     f_register datetime,
     rol varchar(50)
 );
+insert into Players(username,pasword,email,country,f_register,rol)
+values('sergio','3bffa4ebdf4874e506c2b12405796aa5','sergioaliaga@gmail.com','spain',null,'user');
 select * from Players;
 desc Players;
 
