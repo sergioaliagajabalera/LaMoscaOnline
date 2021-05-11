@@ -58,10 +58,16 @@ var players=playersRouter.players;
 app.get('/hello', function(req, res) {
   res.send('hello world');
 });
+  //general
+  app.post('/login', playersRouter.login(db,md5,players));
+  app.post('/register', playersRouter.register(db,md5,players));
+  app.post('/logout', playersRouter.logout(players));
+  //game
+  
 
-app.post('/login', playersRouter.login(db,md5,players));
-app.post('/register', playersRouter.register(db,md5,players));
-app.post('/logout', playersRouter.logout(players));
+
+
+
 
 
 
