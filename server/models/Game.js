@@ -1,4 +1,4 @@
-module.exports = class Skills {
+module.exports = class Game {
 
 
     //this constructor is for register player
@@ -7,6 +7,7 @@ module.exports = class Skills {
       this.players=new Array();
       this.map = map;
       this.size_g = size_g;
+      this.start_d=null;
       this.winner=null;
     }
   
@@ -16,6 +17,12 @@ module.exports = class Skills {
     
     get name() {
         return this._name
+    }
+
+    getAllplayers(){
+      var arrayplayers=[];
+      this.players.forEach(a=>arrayplayers.push(a.player));
+      return arrayplayers;
     }
 
   }

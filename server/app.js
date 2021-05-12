@@ -43,12 +43,12 @@ var md5 = require('md5');
 
 //routes imports
 var playersRouter = require('./routes/players');
-
+var gamesRouter = require('./routes/games');
 
 
 //array's objects exports
 var players=playersRouter.players;
-
+var games=gamesRouter.games;
 
 
 
@@ -63,9 +63,35 @@ app.get('/hello', function(req, res) {
   app.post('/register', playersRouter.register(db,md5,players));
   app.post('/logout', playersRouter.logout(players));
   //game
-  
 
 
+
+
+
+//socket.io connections on and emit
+const io = require('socket.io')({cors: {origin: "*"}});
+
+io.on('connection', client => {
+    
+  //listening sockets and call methods routes
+  client.on('createGame', function(form){
+      console.log(form);
+      gamesRouter.createGame(client,form,games);
+  });
+
+  client.on('joinGame', function(form){
+    console.log(form);
+    gamesRouter.joinGame(client,io,form,games);
+  });
+
+  client.on('startGame', function(form){
+    console.log(form);
+    gamesRouter.startGame(io,form,games);
+  });
+
+});
+
+io.listen(8888);
 
 
 
