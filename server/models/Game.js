@@ -8,6 +8,7 @@ module.exports = class Game {
       this.map = map;
       this.size_g = size_g;
       this.start_d=null;
+      this.finish_d=null;
       this.winner=null;
     }
   

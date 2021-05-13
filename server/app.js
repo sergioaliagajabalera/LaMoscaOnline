@@ -89,6 +89,11 @@ io.on('connection', client => {
     gamesRouter.startGame(io,form,games);
   });
 
+  client.on('getstatusGame', function(form){
+    console.log(form);
+    gamesRouter.getstatusGame(client,io,form,games);
+  });
+
 });
 
 io.listen(8888);

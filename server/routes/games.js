@@ -53,14 +53,32 @@ exports.startGame=function(io,form,games) {//parameter "form" get values to   so
     //get values for initialize variables
     let lenghtplayers=form.playerlenght; 
     let roomcode=form.roomcode;
-
     var game=games.find(a=>a.roomcode==roomcode);
-    if(game.length!=0 && game.size==lenghtplayers) {
+    console.log(lenghtplayers);
+    if(game.length!=0 && game.size_g==lenghtplayers) {
       let data= new Date();
       let hour=data.getHours()+':'+data.getMinutes()+':'+data.getSeconds;
       game.start_d=hour;
       console.log(games);
+      console.log(io.sockets.adapter.rooms);
       console.log('start game');
       io.to(roomcode).emit('startsuccessful','Start Game');
     }   
+};
+
+exports.getstatusGame=function(client,io,form,games) {//parameter "form" get values to   socket of the client
+  //get values for initialize variables
+  let roomcode=form.roomcode;
+  let player=form.player;
+  console.log(roomcode);
+  var game=games.find(a=>a.roomcode==roomcode);
+  if(game.length!=0) {
+    client.join(roomcode);
+    client.username=player;
+    console.log(io.sockets.adapter.rooms);
+    console.log("get status");
+    console.log(game);
+    let form={'game':game,'players':game.getAllplayers()}
+    io.to(roomcode).emit('getstatussuccessful',form);
+  }   
 };
