@@ -13,7 +13,7 @@ exports.createGame=function(client,form,games) {//parameter "form" get values to
         let roomcode=player+''+Math.round(Math.random()*5999);//generate code room or game
 
         var game=new Game(roomcode,map,sizeroom)
-        let addplayer={player:player,rol:'admin',cards:[]}
+        let addplayer={player:player,rol:'admin',cards:new Array()}
         game.players.push(addplayer);
         games.push(game);
         console.log(games);
@@ -35,7 +35,7 @@ exports.joinGame=function(client,io,form,games) {//parameter "form" get values t
 
     var game=games.find(a=>a.roomcode==roomcode);
     if(game.length!=0) {
-      let addplayer={player:player,rol:'guest',cards:[]}   
+      let addplayer={player:player,rol:'guest',cards:new Array()}   
       game.players.push(addplayer);  
       console.log(games);
       client.join(roomcode);
@@ -59,7 +59,7 @@ exports.startGame=function(io,form,games) {//parameter "form" get values to   so
       let data= new Date();
       let hour=data.getHours()+':'+data.getMinutes()+':'+data.getSeconds;
       game.start_d=hour;
-      console.log(games);
+      game.dividedcards();
       console.log(io.sockets.adapter.rooms);
       console.log('start game');
       io.to(roomcode).emit('startsuccessful','Start Game');
@@ -77,7 +77,7 @@ exports.getstatusGame=function(client,io,form,games) {//parameter "form" get val
     client.username=player;
     console.log(io.sockets.adapter.rooms);
     console.log("get status");
-    console.log(game);
+    console.log(game.players[0].cards);
     let form={'game':game,'players':game.getAllplayers()}
     io.to(roomcode).emit('getstatussuccessful',form);
   }   
