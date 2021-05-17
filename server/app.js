@@ -94,6 +94,30 @@ io.on('connection', client => {
     gamesRouter.getstatusGame(client,io,form,games);
   });
 
+  //actionsgames sockets on
+  client.on('startDrag', function(form){
+    console.log(form);
+    gamesRouter.startDrag(client,io,form,games);
+  });
+  client.on('endDrag', function(form){
+    console.log(form);
+    let roomcode=client.roomcode;
+    io.to(roomcode).emit('endDragsuccessful',form);
+  });
+  client.on('onDrop', function(form){
+    console.log(form);
+    gamesRouter.onDropcard(client,io,form,games);
+  });
+  client.on('giveCard', function(){
+    gamesRouter.giveCard(client,io,games);
+  });
+  client.on('throwCard', function(form){
+    gamesRouter.throwCard(client,io,form,games);
+  });
+  client.on('viewCard', function(form){
+    gamesRouter.viewCard(client,io,form,games);
+  });
+
 });
 
 io.listen(8888);
