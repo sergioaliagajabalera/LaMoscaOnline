@@ -94,7 +94,17 @@ io.on('connection', client => {
     gamesRouter.getstatusGame(client,io,form,games);
   });
 
+  client.on('getcheckturnround', function(){
+    gamesRouter.getcheckturnround(client,io,games);
+  });
+
   //actionsgames sockets on
+  client.on('mosca', function(){
+    gamesRouter.mosca(client,io,games);
+  });
+  client.on('checkwinnerstartinprocess', function(){
+    gamesRouter.checkwinnerstartinprocess(client,io,games);
+  });
   client.on('startDrag', function(form){
     console.log(form);
     gamesRouter.startDrag(client,io,form,games);
@@ -117,7 +127,15 @@ io.on('connection', client => {
   client.on('viewCard', function(form){
     gamesRouter.viewCard(client,io,form,games);
   });
-
+  client.on('giveCardtoanother', function(form){
+    gamesRouter.giveCardtanother(client,io,form,games);
+  });
+  client.on('changeCardwithoutsee', function(form){
+    gamesRouter.changeCardwithoutsee(client,io,form,games);
+  });
+  client.on('showCardschangesee', function(form){
+    gamesRouter.showCardschangesee(client,io,form,games);
+  });
 });
 
 io.listen(8888);
