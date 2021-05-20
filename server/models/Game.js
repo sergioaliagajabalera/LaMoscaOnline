@@ -70,7 +70,7 @@ module.exports = class Game {
       var winnercheck=[];
       if(playerscheck[0].tie==true) winnercheck=playerscheck.filter(a=>a.tie==true);
       else winnercheck.push(playerscheck[0]);
-      var distribution=(award/winnercheck.length).toFixed();//calculate award by the number players
+      var distribution=parseInt((award/winnercheck.length).toFixed());//calculate award by the number players
       winnercheck.forEach(function(a,i){//distributation of award for every player 
         a.award=distribution;
       }.bind(this));

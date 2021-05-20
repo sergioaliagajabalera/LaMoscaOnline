@@ -44,12 +44,12 @@ var md5 = require('md5');
 //routes imports
 var playersRouter = require('./routes/players');
 var gamesRouter = require('./routes/games');
-
+var skillsRouter = require('./routes/skills');
 
 //array's objects exports
 var players=playersRouter.players;
 var games=gamesRouter.games;
-
+var skills=skillsRouter.skills;
 
 
 
@@ -59,9 +59,9 @@ app.get('/hello', function(req, res) {
   res.send('hello world');
 });
   //general
-  app.post('/login', playersRouter.login(db,md5,players));
+  app.post('/login', playersRouter.login(db,md5,players,skills));
   app.post('/register', playersRouter.register(db,md5,players));
-  app.post('/logout', playersRouter.logout(players));
+  app.post('/logout', playersRouter.logout(players,skills));
   //game
 
 
@@ -77,6 +77,8 @@ io.on('connection', client => {
   client.on('createGame', function(form){
       console.log(form);
       gamesRouter.createGame(client,form,games);
+      console.log("skillssssssssssssssssssssssssssssssssssssssssssssssssss");
+      console.log(skills);
   });
 
   client.on('joinGame', function(form){
@@ -103,7 +105,30 @@ io.on('connection', client => {
     gamesRouter.mosca(client,io,games);
   });
   client.on('checkwinnerstartinprocess', function(){
-    gamesRouter.checkwinnerstartinprocess(client,io,games);
+    var winnercheck= gamesRouter.checkwinnerstartinprocess(client,io,games);
+    var game=winnercheck.game;
+    var winner=winnercheck.winner;
+    let roomcode=winnercheck.roomcode;
+ 
+    var onlyInA = game.players.filter(playersRouter.comparer(winner));
+                                      //it get the difference beetwen winner array and game array for get of the lossers 
+    var onlyInB = winner.filter(playersRouter.comparer(game.players));
+    var lossers = onlyInA.concat(onlyInB);//get difference
+
+    
+    //update skills players
+    lossers.forEach(a => skillsRouter.gamefinished(db,skills,a.player,0,'loss'));
+    winner.forEach(a => skillsRouter.gamefinished(db,skills,a.player,a.award,'win'));
+
+    //delete game
+    var indexn=games.indexOf(game);
+    games.splice(indexn,1);
+
+    //emit winner 
+    var form={winner:winner};
+    io.to(roomcode).emit('winnersuccessful',form);
+    
+    
   });
   client.on('startDrag', function(form){
     console.log(form);

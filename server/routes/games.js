@@ -78,7 +78,6 @@ exports.getstatusGame=function(client,io,form,games) {//parameter "form" get val
   let player=form.player;
   var game=games.find(a=>a.roomcode==roomcode);
   if(game!=undefined) {
-    console.log("CANTISDIDIFDIF---------------------------------------------"+game.cards.length);
     client.join(roomcode);
     client.username=player;
     client.roomcode=roomcode;
@@ -147,17 +146,13 @@ exports.checkwinnerstartinprocess=function(client,io,games) {
   game=games.find(a=>a.roomcode==roomcode);
   if(game!=undefined) {
     var winner=game.checkwinner(io,roomcode);
-    var indexn=games.indexOf(game);
-    games.splice(indexn,1);
-    var form={winner:winner};
-    console.log("despueess de eliminar");
-    console.log(winner);
-    io.to(roomcode).emit('winnersuccessful',form);
+    var form={winner:winner,game:game,roomcode:roomcode};
+    return form;
   }
 };
   
   //startdrag
-  exports.startDrag=function(client,io,form,games) {//parameter "form" get values to   socket of the client
+  exports.startDrag=function(client,io,form,games) {//parameter "form" get values to  socket of the client
     //get values for initialize variables
     let roomcode=client.roomcode;
     let playerAction=client.username;

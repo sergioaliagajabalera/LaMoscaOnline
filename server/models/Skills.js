@@ -1,13 +1,12 @@
 //model or class player
 module.exports = class Skills {
-
-
-    //this constructor is for register player
-    constructor(roomcode,map,size_g) {
-      this.roomcode= roomcode;
-      this.map = map;
-      this.size_g = size_g;
-      this.winner=null;
+    
+    constructor(username,wins,losses,percent,xp) {
+        this.username=username;
+        this.wins=wins;
+        this.losses=losses;
+        this.percent=percent;
+        this.xp=xp;
     }
   
     set name(value) {
@@ -16,5 +15,9 @@ module.exports = class Skills {
     
     get name() {
         return this._name
+    }
+
+    calculatepercent(){
+        this.percent=this.wins*100/(this.wins+this.losses);
     }
 }
