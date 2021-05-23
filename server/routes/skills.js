@@ -27,3 +27,22 @@ exports.gamefinished=function(db,skills,username,xp,action) {
         }
     });
  };
+
+ exports.showskillsandprofile=function(players,skills) {
+    return function(req, res) {
+        try {
+            console.log(req.query.username);
+            var username=req.query.username;
+            var player=[];
+            player=players.find(a=>a.username==username);
+            
+            if(player!=undefined) {
+                var skill=skills.find(a=>a.username==username);
+                var form={player:player,skills: skill};
+                res.send({ status: 1, data:form})
+            }else res.send({ status: 2, data:'User not exist'}); 
+        } catch (error) {
+            res.send({ status: 0, error: error });
+        } 
+    }
+ }

@@ -62,8 +62,8 @@ app.get('/hello', function(req, res) {
   app.post('/login', playersRouter.login(db,md5,players,skills));
   app.post('/register', playersRouter.register(db,md5,players));
   app.post('/logout', playersRouter.logout(players,skills));
-  //game
-
+  //get inf
+  app.get('/showskillsandprofile', skillsRouter.showskillsandprofile(players,skills));
 
 
 
@@ -77,8 +77,6 @@ io.on('connection', client => {
   client.on('createGame', function(form){
       console.log(form);
       gamesRouter.createGame(client,form,games);
-      console.log("skillssssssssssssssssssssssssssssssssssssssssssssssssss");
-      console.log(skills);
   });
 
   client.on('joinGame', function(form){

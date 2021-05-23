@@ -28,5 +28,5 @@ create table Skills(
     xp int,
     foreign key (username) REFERENCES Players(username) on delete cascade
 );
-
+ 
 show tables;

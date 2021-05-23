@@ -163,19 +163,21 @@ exports.checkwinnerstartinprocess=function(client,io,games) {
     var game=games.find(a=>a.roomcode==roomcode);
     
     if(game!=undefined) {
-      var checkdropcorrect=game.checkdropcorrect(playerCardmove,cardn);
-      if(checkdropcorrect==3){//if player action drag card is not equal to last card, receive card more
-        let card=game.giveCard();
-        let playernaction=game.getNumberplayer(playerAction);
-        game.collectCard(playernaction,card);
-        let form3={'game':game,'players':game.getAllplayers()};
-        io.to(roomcode).emit('getstatussuccessful',form3);
+      var playernaction=game.getNumberplayer(playerAction);
+      if(game.playernmosca!=playerCardmove && game.playernmosca!=playernaction){
+        var checkdropcorrect=game.checkdropcorrect(playerCardmove,cardn);
+        if(checkdropcorrect==3){//if player action drag card is not equal to last card, receive card more
+          let card=game.giveCard();
+          let playernaction=game.getNumberplayer(playerAction);
+          game.collectCard(playernaction,card);
+          let form3={'game':game,'players':game.getAllplayers()};
+          io.to(roomcode).emit('getstatussuccessful',form3);
+        }
+        var imagesrc=game.getCardsrc(playerCardmove,cardn);
+        console.log(imagesrc);
+        let form2={imageshow:imagesrc,player:playerCardmove,cardn:cardn};
+        io.to(roomcode).emit('showcardsuccessful',form2);
       }
-      var imagesrc=game.getCardsrc(playerCardmove,cardn);
-      console.log(imagesrc);
-      let form2={imageshow:imagesrc,player:playerCardmove,cardn:cardn};
-      io.to(roomcode).emit('showcardsuccessful',form2);
-      
     }
   };
 
@@ -188,17 +190,22 @@ exports.checkwinnerstartinprocess=function(client,io,games) {
 
     console.log(roomcode);
     var game=games.find(a=>a.roomcode==roomcode);
-    if(game!=undefined) {
-      var checkdropcorrect=game.checkdropcorrect(playerCardmove,cardn);
-      if(checkdropcorrect==1){//if player action drag card is equal to last card and different the secondlast, drop card
-        game.dropCard(playerCardmove,cardn);
-        console.log(game.cardlast+"|"+game.cardsecondlast);   
-        if(client.username!=game.players[playerCardmove].player){//if drop card of another user, emit to give one card to other player
-          let form3={giveCardtoplayer:game.players[playerCardmove].player};
-          client.emit('giveOneCardtoanothermovement',form3);
+
+    
+    if(game!=undefined && game.playernmosca!=playerCardmove && game.playernmosca!=playernaction) {
+      var playernaction=game.getNumberplayer(client.username);
+      if(game.playernmosca!=playerCardmove && game.playernmosca!=playernaction) {
+        var checkdropcorrect=game.checkdropcorrect(playerCardmove,cardn);
+        if(checkdropcorrect==1){//if player action drag card is equal to last card and different the secondlast, drop card
+          game.dropCard(playerCardmove,cardn);
+          console.log(game.cardlast+"|"+game.cardsecondlast);   
+          if(client.username!=game.players[playerCardmove].player){//if drop card of another user, emit to give one card to other player
+            let form3={giveCardtoplayer:game.players[playerCardmove].player};
+            client.emit('giveOneCardtoanothermovement',form3);
+          }
+          let form2={'game':game,'players':game.getAllplayers()}
+          io.to(roomcode).emit('getstatussuccessful',form2);
         }
-        let form2={'game':game,'players':game.getAllplayers()}
-        io.to(roomcode).emit('getstatussuccessful',form2);
       }
     }
   };
@@ -211,22 +218,25 @@ exports.checkwinnerstartinprocess=function(client,io,games) {
 
     console.log(roomcode);
     var game=games.find(a=>a.roomcode==roomcode);
-    if(game!=undefined) {
+    if(game!=undefined ) {
       let playernaction=game.getNumberplayer(playerAction);
-    
-      if( game.turn!=-1){
-        if(game.turn==playernaction){
-          var card=game.giveCard();
-          let form={card:card};
-          client.emit('givecardsuccessful',form)
-        }else{
-          let form2={error:'Is not your turn'};
-          client.emit('errormessagesocket',form2)
-        }
-      }else {
-          let form3={error:'Game is finalize, it can'+"' "+'t take cards'};
-          client.emit('errormessagesocket',form3)
-      };
+      if(game.playernmosca!=playernaction) {
+        if( game.turn!=-1){
+          if(game.turn==playernaction){
+            var card=game.giveCard();
+            if(card!=-2){
+              let form={card:card};
+              client.emit('givecardsuccessful',form)
+            }else client.emit('checkwinnerstart',{interval:2500});
+          }else{
+            let form2={error:'Is not your turn'};
+            client.emit('errormessagesocket',form2)
+          }
+        }else {
+            let form3={error:'Game is finalize, it can'+"' "+'t take cards'};
+            client.emit('errormessagesocket',form3)
+        };
+      }
     }
   };
 
@@ -242,23 +252,26 @@ exports.checkwinnerstartinprocess=function(client,io,games) {
     console.log(roomcode);
     var game=games.find(a=>a.roomcode==roomcode);
     if(game!=undefined) {
-      if(action==0){//if change and throw card, movement special(not)
-        game.changeandthrowcollectCard(playern,cardnchange,card);
-        game.changeturn(client);
-      }else{
-        console.log('entra accion 1');
-        game.dropCard(playern,-1,card);
-        console.log(card);
-        if(card.v==7 || card.v==8)client.emit('viewyourcardmovementspecial');
-        else if(card.v==9 || card.v==10)client.emit('viewcardanotherplayermovementspecial');
-        else if(card.name.includes("J-") || card.name.includes("Queen-")) client.emit('changecardwithoutseemovementspecial');
-        else if(card.name.includes("King-")) client.emit('changecardseemovementspecial');
-        else game.changeturn(client);
-      };
-      
-      let form2={'game':game,'players':game.getAllplayers()}
-      console.log(game.cards.length);
-      io.to(roomcode).emit('getstatussuccessful',form2);
+      let playernaction=game.getNumberplayer(playerAction);
+      if(game.playernmosca!=playern && game.playernmosca!=playernaction) {
+        if(action==0){//if change and throw card, movement special(not)
+          game.changeandthrowcollectCard(playern,cardnchange,card);
+          game.changeturn(client);
+        }else{
+          console.log('entra accion 1');
+          game.dropCard(playern,-1,card);
+          console.log(card);
+          if(card.v==7 || card.v==8)client.emit('viewyourcardmovementspecial');
+          else if(card.v==9 || card.v==10)client.emit('viewcardanotherplayermovementspecial');
+          else if(card.name.includes("J-") || card.name.includes("Queen-")) client.emit('changecardwithoutseemovementspecial');
+          else if(card.name.includes("King-")) client.emit('changecardseemovementspecial');
+          else game.changeturn(client);
+        };
+        
+        let form2={'game':game,'players':game.getAllplayers()}
+        console.log(game.cards.length);
+        io.to(roomcode).emit('getstatussuccessful',form2);
+      }
     }
   };
 
@@ -268,7 +281,7 @@ exports.viewCard=function(client,io,form,games) {//parameter "form" get values t
   var roomcode=client.roomcode;
   var playern=form.playern;
   var cardn=form.cardn;
-
+  var action=form.action;
   
   console.log(roomcode);
   var game=games.find(a=>a.roomcode==roomcode);
@@ -276,14 +289,16 @@ exports.viewCard=function(client,io,form,games) {//parameter "form" get values t
     var imagesrc=game.getCardsrc(playern,cardn);
     console.log(imagesrc);
     
+    
+    if(action!=2){
+      game.changeturn(client);
+      let form3={'game':game,'players':game.getAllplayers()}
+      io.to(roomcode).emit('getstatussuccessful',form3); 
+    }
+      
     let form2={imageshow:imagesrc,player:playern,cardn:cardn,action:1};
-    client.emit('showcardsuccessful',form2)
-    /*if(client.username==game.player[playern].player){ //change the action property , depend of movement special if is for show card of the same user or another
-      client.emit('showcardsuccessful',form)
-    }else{
-      client.emit('showcardsuccessful',form)
-    };*/
-    game.changeturn(client);
+    client.emit('showcardsuccessful',form2);
+    
   }
 };
 

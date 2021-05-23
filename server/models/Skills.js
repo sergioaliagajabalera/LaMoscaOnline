@@ -18,6 +18,6 @@ module.exports = class Skills {
     }
 
     calculatepercent(){
-        this.percent=this.wins*100/(this.wins+this.losses);
+        this.percent=parseFloat((this.wins*100/(this.wins+this.losses)).toFixed(0));
     }
 }

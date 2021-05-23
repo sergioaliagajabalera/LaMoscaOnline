@@ -111,8 +111,12 @@ module.exports = class Game {
       return card;
     }
     giveCard(){
-      var card=this.cards.shift();
-      return card;
+      if(this.cards.length!=0){ 
+        var card=this.cards.shift();
+        return card;
+      }
+      else return -2;
+     
     }
 
     giveCardtoanother(playern,cardn,playerReceiven){
