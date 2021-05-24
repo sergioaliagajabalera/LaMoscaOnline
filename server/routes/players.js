@@ -13,6 +13,7 @@ exports.login=function(db,md5,players,skills) {
   return function(req, res) {
     console.log(req.body)
     try {
+      console.log(players);
       let { username, password} = req.body; //it get the values pass for request
       const hashed_password = md5(password.toString()); //it return hash of the password
       console.log(username,password);
@@ -27,28 +28,30 @@ exports.login=function(db,md5,players,skills) {
             console.log(result.length);
             if(result.length==0)res.send({ status: 3, data: 'User or password incorrect' });
             else{
-              console.log(result[0].username);
-              let player=new Player(result[0].username,result[0].pasword,result[0].email,result[0].country);
-              players.push(player);
-              const sql = `SELECT * FROM Skills WHERE username = ?`
-              db.query(
-                sql, [username], 
-                function(err, result2, fields){
-                  if(err){ 
-                    res.send({ status: 0, data: err });
-                  }else{
-                    console.log(result2.length);
-                    if(result2.length==0)res.send({ status: 3, data: 'error' });
-                    else{
-                      console.log(result2[0].username);
-                      let skill=new Skills(result2[0].username,result2[0].wins,result2[0].losses,result2[0].percent,result2[0].xp);
-                      skills.push(skill);
-                      
-                      res.send({ status: 1, data: result})
-                    };
-                  }
-              });
-            };
+              if(!players.find(a=>a.username==username)){
+                console.log(result[0].username);
+                let player=new Player(result[0].username,result[0].pasword,result[0].email,result[0].country);
+                players.push(player);
+                const sql = `SELECT * FROM Skills WHERE username = ?`
+                db.query(
+                  sql, [username], 
+                  function(err, result2, fields){
+                    if(err){ 
+                      res.send({ status: 0, data: err });
+                    }else{
+                      console.log(result2.length);
+                      if(result2.length==0)res.send({ status: 3, data: 'error' });
+                      else{
+                        console.log(result2[0].username);
+                        let skill=new Skills(result2[0].username,result2[0].wins,result2[0].losses,result2[0].percent,result2[0].xp);
+                        skills.push(skill);
+                        
+                        res.send({ status: 1, data: result})
+                      };
+                    }
+                });
+              }else  res.send({ status: 1, data: result});
+            }
           }
       });
     } catch (error) {

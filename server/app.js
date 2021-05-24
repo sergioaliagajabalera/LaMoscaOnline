@@ -72,7 +72,46 @@ app.get('/hello', function(req, res) {
 const io = require('socket.io')({cors: {origin: "*"}});
 
 io.on('connection', client => {
-    
+   
+  //disconnect Actions
+  client.on('disconnect', function() {
+    console.log('Got disconnect!');
+    let roomcode=client.roomcode;
+    let playerAction=client.username;
+
+    console.log(roomcode);
+    var game=games.find(a=>a.roomcode==roomcode);
+  
+    if(game!=undefined){
+      var indexgame=games.indexOf(game);
+      var playern=game.getNumberplayer(playerAction);
+      console.log(game.players.length);
+      console.log(game.tempcheckstart);
+      if(game.tempcheckstart!=true){
+        if(game.start_d==null){
+          if(game.players.length==1){
+            games.splice(indexgame,1);
+          }else{
+            game.players.splice(playern,1);
+          };
+          io.to(roomcode).emit('joinsuccessful',game.getAllplayers());
+        }else{
+          if(game.players.length==2){
+            game.players.splice(playern,1);
+            io.to(roomcode).emit('checkwinnerstart',{interval:0})
+          }else{
+            game.players.splice(playern,1);
+          };
+          let form2={'game':game,'players':game.getAllplayers()}
+          io.to(roomcode).emit('getstatussuccessful',form2);
+        }
+        
+      }
+      console.log(game);
+    }
+ });
+
+
   //listening sockets and call methods routes
   client.on('createGame', function(form){
       console.log(form);
@@ -94,6 +133,7 @@ io.on('connection', client => {
     gamesRouter.getstatusGame(client,io,form,games);
   });
 
+
   client.on('getcheckturnround', function(){
     gamesRouter.getcheckturnround(client,io,games);
   });
@@ -104,28 +144,29 @@ io.on('connection', client => {
   });
   client.on('checkwinnerstartinprocess', function(){
     var winnercheck= gamesRouter.checkwinnerstartinprocess(client,io,games);
-    var game=winnercheck.game;
-    var winner=winnercheck.winner;
-    let roomcode=winnercheck.roomcode;
- 
-    var onlyInA = game.players.filter(playersRouter.comparer(winner));
-                                      //it get the difference beetwen winner array and game array for get of the lossers 
-    var onlyInB = winner.filter(playersRouter.comparer(game.players));
-    var lossers = onlyInA.concat(onlyInB);//get difference
+    if(winnercheck!=-2){
+      var game=winnercheck.game;
+      var winner=winnercheck.winner;
+      let roomcode=winnercheck.roomcode;
+  
+      var onlyInA = game.players.filter(playersRouter.comparer(winner));
+                                        //it get the difference beetwen winner array and game array for get of the lossers 
+      var onlyInB = winner.filter(playersRouter.comparer(game.players));
+      var lossers = onlyInA.concat(onlyInB);//get difference
 
-    
-    //update skills players
-    lossers.forEach(a => skillsRouter.gamefinished(db,skills,a.player,0,'loss'));
-    winner.forEach(a => skillsRouter.gamefinished(db,skills,a.player,a.award,'win'));
+      
+      //update skills players
+      lossers.forEach(a => skillsRouter.gamefinished(db,skills,a.player,0,'loss'));
+      winner.forEach(a => skillsRouter.gamefinished(db,skills,a.player,a.award,'win'));
 
-    //delete game
-    var indexn=games.indexOf(game);
-    games.splice(indexn,1);
+      //delete game
+      var indexn=games.indexOf(game);
+      games.splice(indexn,1);
 
-    //emit winner 
-    var form={winner:winner};
-    io.to(roomcode).emit('winnersuccessful',form);
-    
+      //emit winner 
+      var form={winner:winner};
+      io.to(roomcode).emit('winnersuccessful',form);
+    }
     
   });
   client.on('startDrag', function(form){
@@ -140,6 +181,12 @@ io.on('connection', client => {
   client.on('onDrop', function(form){
     console.log(form);
     gamesRouter.onDropcard(client,io,form,games);
+  });
+  client.on('changeturn', function(){
+    var game=games.find(a=>a.roomcode==roomcode);
+    game.changeturn(client);
+    let form={'game':game,'players':game.getAllplayers()}
+    io.to(roomcode).emit('getstatussuccessful',form); 
   });
   client.on('giveCard', function(){
     gamesRouter.giveCard(client,io,games);

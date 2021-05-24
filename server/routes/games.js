@@ -11,19 +11,22 @@ exports.createGame=function(client,form,games) {//parameter "form" get values to
         let map=form.map;
         let sizeroom=form.size;
         let roomcode=player+''+Math.round(Math.random()*5999);//generate code room or game
-
-        var game=new Game(roomcode,map,sizeroom)
-        let addplayer={player:player,rol:'admin',cards:new Array()}
-        game.players.push(addplayer);
-        games.push(game);
-        console.log(games);
-        client.join(roomcode);
-        client.username=player;
-        client.rol='admin';
-        console.log("createGame")
-        client.emit('createsuccessful',roomcode);
+        var gametemp=games.find(a=>a.players.find(a=>a.player==player));//maybe the player is in another game
+        if(gametemp==undefined) {
+          var game=new Game(roomcode,map,sizeroom)
+          let addplayer={player:player,rol:'admin',cards:new Array()}
+          game.players.push(addplayer);
+          games.push(game);
+          console.log(games);
+          client.join(roomcode);
+          client.username=player;
+          client.roomcode=roomcode;
+          client.rol='admin';
+          console.log("createGame")
+          client.emit('createsuccessful',roomcode);
+        }
       } catch (error) {
-          res.send({ status: 0, error: error });
+          
       }
   };
 
@@ -33,16 +36,24 @@ exports.joinGame=function(client,io,form,games) {//parameter "form" get values t
     let player=form.player; 
     let roomcode=form.roomcode;
 
-    var game=games.find(a=>a.roomcode==roomcode);
-    if(game!=undefined) {
-      let addplayer={player:player,rol:'guest',cards:new Array()}   
-      game.players.push(addplayer);  
-      console.log(games);
-      client.join(roomcode);
-      client.username=player;
-      client.rol='guest';
-      console.log("joinGame")
-      io.to(roomcode).emit('joinsuccessful',game.getAllplayers());
+    var gametemp=games.find(a=>a.players.find(a=>a.player==player));//maybe the player is in another game
+    if(gametemp==undefined){
+      var game=games.find(a=>a.roomcode==roomcode);
+      if(game!=undefined) {
+        if(game.start_d==null){
+          if(game.getNumberplayer(player)==-1 && game.players.length<game.size_g ){//maybe the player want join but the game already started or full
+            let addplayer={player:player,rol:'guest',cards:new Array()}   
+            game.players.push(addplayer);  
+            console.log(games);
+            client.join(roomcode);
+            client.username=player;
+            client.roomcode=roomcode;
+            client.rol='guest';
+            console.log("joinGame")
+            io.to(roomcode).emit('joinsuccessful',game.getAllplayers());
+          }
+        }
+      }
     }   
   } catch (error) {
 
@@ -65,6 +76,7 @@ exports.startGame=function(io,form,games) {//parameter "form" get values to   so
         game.dividedcards();
         game.cardlast=game.giveCard();
         game.cardsecondlast=game.cardlast;
+        game.tempcheckstart=true;
         console.log(io.sockets.adapter.rooms);
         console.log('start game');
         io.to(roomcode).emit('startsuccessful','Start Game');
@@ -81,10 +93,11 @@ exports.getstatusGame=function(client,io,form,games) {//parameter "form" get val
     client.join(roomcode);
     client.username=player;
     client.roomcode=roomcode;
+    if(io.sockets.adapter.rooms.get(roomcode).size==game.players.length) game.tempcheckstart=false; 
     console.log(game);
-    console.log(io.sockets.adapter.rooms);
     console.log("get status");
     console.log(game.players[0].cards);
+    console.log(io.sockets.adapter.rooms);
     let form2={'game':game,'players':game.getAllplayers()}
     io.to(roomcode).emit('getstatussuccessful',form2);
   }
@@ -148,7 +161,7 @@ exports.checkwinnerstartinprocess=function(client,io,games) {
     var winner=game.checkwinner(io,roomcode);
     var form={winner:winner,game:game,roomcode:roomcode};
     return form;
-  }
+  }else return -2;
 };
   
   //startdrag
@@ -168,10 +181,12 @@ exports.checkwinnerstartinprocess=function(client,io,games) {
         var checkdropcorrect=game.checkdropcorrect(playerCardmove,cardn);
         if(checkdropcorrect==3){//if player action drag card is not equal to last card, receive card more
           let card=game.giveCard();
-          let playernaction=game.getNumberplayer(playerAction);
-          game.collectCard(playernaction,card);
-          let form3={'game':game,'players':game.getAllplayers()};
-          io.to(roomcode).emit('getstatussuccessful',form3);
+          if(card!=-2){
+            let playernaction=game.getNumberplayer(playerAction);
+            game.collectCard(playernaction,card);
+            let form3={'game':game,'players':game.getAllplayers()};
+            io.to(roomcode).emit('getstatussuccessful',form3);
+          }else client.emit('checkwinnerstart',{interval:2500});
         }
         var imagesrc=game.getCardsrc(playerCardmove,cardn);
         console.log(imagesrc);
@@ -227,14 +242,14 @@ exports.checkwinnerstartinprocess=function(client,io,games) {
             if(card!=-2){
               let form={card:card};
               client.emit('givecardsuccessful',form)
-            }else client.emit('checkwinnerstart',{interval:2500});
+            }else client.emit('checkwinnerstart',{interval:0});
           }else{
             let form2={error:'Is not your turn'};
-            client.emit('errormessagesocket',form2)
+            client.emit('errormessagesocket',form2);
           }
         }else {
             let form3={error:'Game is finalize, it can'+"' "+'t take cards'};
-            client.emit('errormessagesocket',form3)
+            client.emit('errormessagesocket',form3);
         };
       }
     }
@@ -257,6 +272,7 @@ exports.checkwinnerstartinprocess=function(client,io,games) {
         if(action==0){//if change and throw card, movement special(not)
           game.changeandthrowcollectCard(playern,cardnchange,card);
           game.changeturn(client);
+          game.draw2={playern:playern, cardn:cardnchange}
         }else{
           console.log('entra accion 1');
           game.dropCard(playern,-1,card);
@@ -271,6 +287,7 @@ exports.checkwinnerstartinprocess=function(client,io,games) {
         let form2={'game':game,'players':game.getAllplayers()}
         console.log(game.cards.length);
         io.to(roomcode).emit('getstatussuccessful',form2);
+        game.draw2={playern:-1, cardn:-1}
       }
     }
   };
@@ -292,8 +309,10 @@ exports.viewCard=function(client,io,form,games) {//parameter "form" get values t
     
     if(action!=2){
       game.changeturn(client);
+      game.draw1={playern:playern, cardn:cardn}
       let form3={'game':game,'players':game.getAllplayers()}
       io.to(roomcode).emit('getstatussuccessful',form3); 
+      game.draw1={playern:-1, cardn:-1};
     }
       
     let form2={imageshow:imagesrc,player:playern,cardn:cardn,action:1};
@@ -336,11 +355,15 @@ exports.changeCardwithoutsee=function(client,io,form,games) {//parameter "form" 
   if(action!=0){
     if(game.length!=0) {
       game.changecardtoanotherplayer(playeractionnchange,cardnactionchange,playernchange,cardnchange);
+      game.draw1={playern:playeractionnchange, cardn:cardnactionchange}
+      game.draw2={playern:playernchange, cardn:cardnchange}
     }
   }
   game.changeturn(client);
   let form2={'game':game,'players':game.getAllplayers()}
   io.to(roomcode).emit('getstatussuccessful',form2);
+  game.draw1={playern:-1, cardn:-1}
+  game.draw2={playern:-1, cardn:-1}
 };
 
 exports.showCardschangesee=function(client,io,form,games) {//parameter "form" get values to   socket of the client
@@ -356,9 +379,18 @@ exports.showCardschangesee=function(client,io,form,games) {//parameter "form" ge
   if(game!=undefined) {
     var imagesrc1=game.getCardsrc(playeractionnchange,cardnactionchange);
     var imagesrc2=game.getCardsrc(playernchange,cardnchange);
-    
-    
+    game.draw1={playern:playeractionnchange, cardn:cardnactionchange}
+    game.draw3={playern:playernchange, cardn:playernchange}
+
+    let form3={'game':game,'players':game.getAllplayers()}
+    io.to(roomcode).emit('getstatussuccessful',form3);
+    game.draw1={playern:-1, cardn:-1};
+    game.draw3={playern:-1, cardn:-1};
+
     let form2={imageshow1:imagesrc1,imageshow2:imagesrc2};
     client.emit('showcardchangesuccessful',form2)
+
+
+
   }
 };

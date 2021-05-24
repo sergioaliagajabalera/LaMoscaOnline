@@ -22,6 +22,10 @@ module.exports = class Game {
       this.cardlast=null;
       this.cardsecondlast=null;
       this.throwcard=false;//if is true not important if card drop is also to equal to secondlast
+      //card is show with a color in case of view card or change card
+      this.draw1={playern:-1,cardn:-1};
+      this.draw2={playern:-1,cardn:-1};
+      this.draw3={playern:-1,cardn:-1}; //is the same draw1, but in case of show more than one
     }
   
     set name(value) {
@@ -84,7 +88,7 @@ module.exports = class Game {
       return arrayplayers;
     }
     getNumberplayer(player){
-      var playern=0;
+      var playern=-1;
       this.players.forEach(function(a,i){if(a.player==player){playern=i}})
       console.log(playern);
       return playern;
@@ -126,9 +130,25 @@ module.exports = class Game {
     }
 
     checkdropcorrect(playern,cardn){
-        if(this.cardlast.v==this.players[playern].cards[cardn].v && (this.cardsecondlast.v!=this.players[playern].cards[cardn].v || this.throwcard==true)) return 1;
-        else if(this.cardlast.v==this.players[playern].cards[cardn].v ) return 2;
+      //A card can have a comparison of value or name, for this ultimate case, is necessary know the number of characters for make 
+        //a comparison good (in case j,q or k)
+      if(this.players[playern].cards[cardn].name.includes("J-") || this.players[playern].cards[cardn].name.includes("Queen-") || 
+      this.players[playern].cards[cardn].name.includes("King-")){
+        if(this.cardlast.name.includes(this.players[playern].cards[cardn].name.substring(0,1)) || 
+        this.cardlast.name.includes(this.players[playern].cards[cardn].name.substring(0,5))  ||
+          this.cardlast.name.includes(this.players[playern].cards[cardn].name.substring(0,4)) && (
+          !this.cardsecondlast.name.includes(this.players[playern].cards[cardn].name.substring(0,4)) || 
+          !this.cardsecondlast.name.includes(this.players[playern].cards[cardn].name.substring(0,5)) || 
+          !this.cardsecondlast.name.includes(this.players[playern].cards[cardn].name.substring(0,1)) || this.throwcard==true)) return 1;
+        else if(this.cardlast.name.includes(this.players[playern].cards[cardn].name.substring(0,1)) || 
+        this.cardlast.name.includes(this.players[playern].cards[cardn].name.substring(0,5))  ||
+          this.cardlast.name.includes(this.players[playern].cards[cardn].name.substring(0,4)) ) return 2;
         else return 3;
+      }else{
+        if(this.cardlast.v==this.players[playern].cards[cardn].v && (this.cardsecondlast.v!=this.players[playern].cards[cardn].v || this.throwcard==true)) return 1;
+        else if(this.cardlast.v==this.players[playern].cards[cardn].v) return 2;
+        else return 3;
+      }
     }
 
     dropCard(player,cardn,card/*optional*/){
