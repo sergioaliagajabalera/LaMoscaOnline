@@ -19,7 +19,7 @@ values('sergio','3bffa4ebdf4874e506c2b12405796aa5','sergioaliaga@gmail.com','spa
 select * from Players;
 select * from Skills;
 desc Players;
-delete  from players;
+
 create table Skills(
 	username varchar(64) PRIMARY KEY,
     wins int,

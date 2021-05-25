@@ -65,9 +65,7 @@ exports.login=function(db,md5,players,skills) {
 exports.register=function(db,md5,players) {
   return function(req, res) {
     try {
-      console.log("hollaa");
-      let { username, password,email,country} = req.body; //it get the values pass for request
-      console.log(username+password+email+country);
+      let { username, password,email,country,role} = req.body; //it get the values pass for request
       const hashed_password = md5(password.toString()); //it return hash of the password
       console.log(username);
       const sql = `SELECT * FROM Players WHERE username = ? OR email=?` //We create a query for verification the name of user and hash email 
@@ -83,7 +81,7 @@ exports.register=function(db,md5,players) {
                 const sql = `Insert Into Players (username, pasword,email,country,f_register,rol) VALUES ( ?, ?, ?,?,?,?)` //create new player
                 console.log(sql);
                 db.query(
-                  sql, [username,hashed_password,email,country,null,'user'], 
+                  sql, [username,hashed_password,email,country,null,role], 
                   function(err, result, fields){
                     if(err){ 
                       console.log(err);
@@ -130,7 +128,134 @@ exports.logout=function(players,skills) {
   } 
 };
 
+//this is for get data user
+exports.getdatauser=function(players,skills) {
+  return function(req, res) {
+    try {
+      let username = req.query.username;
+      var playertemp=players.find(a=> a.username==username)
+      if(playertemp!=undefined){
+        res.send({ status: 1, data: playertemp  });
+      }else res.send({ status: 3, data: 'user not exist'});
+    } catch (error) {
+    }
+  } 
+};
 
+//this is for get data user without login
+exports.getdatauserwithoutlogin=function(db) {
+  return function(req, res) {
+    try {
+      let username = req.query.username; //it get the values pass for request
+      const sql = `SELECT * FROM Players WHERE username=?` //We create a query for verification the name of user and hash password 
+      console.log(username);
+      db.query(
+        sql, [username], 
+        function(err, result, fields){
+          if(err){ 
+            res.send({ status: 0, data: err });
+          }else{
+            console.log(result.length);
+            if(result.length==0)res.send({ status: 3, data: 'User not exist' });
+            else{
+              res.send({ status: 1, data: result})
+            }  
+          }    
+      });
+    } catch (error) {
+      console.log(error);
+    }
+  } 
+};
+
+
+//this is for edit user
+exports.editUser=function(db) {
+  return function(req, res) {
+    try {
+      let { username,email,country,role} = req.body; //it get the values pass for request
+      console.log(username,email,country);
+      if(role!=undefined){ 
+        const sql = `update Players set email=?, country=?, rol=? where username=?`;
+        db.query(
+          sql, [email,country,role,username], 
+          function(err, result, fields){
+            if(err){ 
+              res.send({ status: 3, data: ' email is exist'});
+            }else{
+                res.send({ status: 1, data: result });    
+              }
+            }
+        )
+      }
+      else{
+        const sql = `update Players set email=?, country=? where username=?`;
+        db.query(
+          sql, [email,country,username], 
+          function(err, result, fields){
+            if(err){ 
+              res.send({ status: 3, data: ' email is exist'});
+            }else{
+                res.send({ status: 1, data: result });    
+              }
+            }
+        )
+      }  
+    } catch (error) {
+        console.log(error);
+        res.send({ status: 0, error: 'error' });
+    }
+  };
+};
+
+//this is for change password user
+exports.changepasswordUser=function(db,md5) {
+  return function(req, res) {
+    try {
+      let { username,password} = req.body; //it get the values pass for request
+      console.log(username);
+      const hashed_password = md5(password.toString()); //it return hash of the password
+      const sql = `update Players set pasword=? where username=?` 
+      db.query(
+        sql, [hashed_password,username], 
+        function(err, result, fields){
+          if(err){ 
+            res.send({ status: 3, data: 'error'});
+          }else{
+              res.send({ status: 1, data: result });    
+            }
+          }
+      )
+    } catch (error) {
+        console.log(error);
+        res.send({ status: 0, error: 'error' });
+    }
+  };
+};
+
+//this is for delete user
+exports.deleteUser=function(db) {
+  return function(req, res) {
+    try {
+      let { username} = req.body; //it get the values pass for request
+      console.log(username);
+      const sql = `delete from Players  where username=?` 
+      db.query(
+        sql, [username], 
+        function(err, result, fields){
+          if(err){ 
+            res.send({ status: 3, data: 'error'});
+          }else{
+              res.send({ status: 1, data: result });    
+            }
+          }
+      )
+    } catch (error) {
+        console.log(error);
+        res.send({ status: 0, error: 'error' });
+    }
+  };
+};
 
  //function to compare arrays for players
  exports.comparer=function(otherArray){

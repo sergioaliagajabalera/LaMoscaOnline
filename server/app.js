@@ -58,14 +58,20 @@ var skills=skillsRouter.skills;
 app.get('/hello', function(req, res) {
   res.send('hello world');
 });
-  //general
-  app.post('/login', playersRouter.login(db,md5,players,skills));
-  app.post('/register', playersRouter.register(db,md5,players));
-  app.post('/logout', playersRouter.logout(players,skills));
-  //get inf
-  app.get('/showskillsandprofile', skillsRouter.showskillsandprofile(players,skills));
 
+//general
+app.post('/login', playersRouter.login(db,md5,players,skills));
+app.post('/register', playersRouter.register(db,md5,players));
+app.post('/logout', playersRouter.logout(players,skills));
+//management users
+app.post('/editUser', playersRouter.editUser(db));
+app.post('/changepasswordUser', playersRouter.changepasswordUser(db,md5));
+app.post('/deleteUser', playersRouter.deleteUser(db));
 
+//get info
+app.get('/showskillsandprofile', skillsRouter.showskillsandprofile(players,skills));
+app.get('/getdatauser', playersRouter.getdatauser(players));
+app.get('/getdatauserwithoutlogin', playersRouter.getdatauserwithoutlogin(db));
 
 
 //socket.io connections on and emit
